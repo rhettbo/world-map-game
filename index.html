@@ -7,6 +7,28 @@
 </head>
 <body>
   <h1>Click a Continent or Ocean</h1>
+
+<div id="quiz-controls">
+  <button id="quiz-button" type="button">Start Quiz Mode</button>
+
+  <div id="question-ui" style="display:none;">
+    <div id="current-question-wrapper">
+      <span id="current-question">Where is...</span>
+      <button id="repeat-audio" type="button" title="Repeat audio">🔊</button>
+      <button id="reset-quiz" type="button" aria-label="Reset quiz">Reset</button>
+    </div>
+  </div>
+</div>
+
+<div id="quiz-modal" class="modal">
+  <div class="modal-content">
+    <h2 id="quiz-result-title">Quiz Complete!</h2>
+    <p id="quiz-score-text"></p>
+    <button id="home-btn">Home</button>
+    <button id="practice-btn">Keep Practicing</button>
+  </div>
+</div>
+
   <div id="map-container">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1295.52 733.92">
   <g id="north_america">
