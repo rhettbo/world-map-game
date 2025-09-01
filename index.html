@@ -4,6 +4,15 @@
   <meta charset="UTF-8">
   <title>World Map Game</title>
   <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="/manifest.webmanifest">
+
+<!-- iOS standalone -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="World Map Quiz">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+
 </head>
 <body>
   <h1>Click a Continent or Ocean</h1>
@@ -356,5 +365,11 @@
     </svg>
   </div>
   <script src="script.js"></script>
+  <script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(()=>{});
+}
+</script>
 </body>
+
 </html>

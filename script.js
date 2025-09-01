@@ -1,5 +1,5 @@
 // /script.js
-// World Map Game — stable, single-audio quiz flow
+// World Map Game — stable quiz flow with "first-try green, otherwise red shades"
 // - Start Quiz button toggles to red "Exit Quiz" while active
 // - Prevents stacked event listeners
 // - Ensures only one prompt audio plays at a time
@@ -35,14 +35,15 @@ const NAME_MAP = {
 const NEUTRAL_FILL = '#d6d6d6';
 const CORRECT_FILL = '#66ff66';
 const GUESS_COLORS = ['#ffcccc', '#ff9999', '#ff6666', '#ff3333', '#ff0000'];
+const MAX_GUESSES  = 5; // reveal after this many misses
 
 // ====== State ======
 let quizActive = false;
 let currentTarget = null;
-let guessCount = 0;
+let guessCount = 0;       // misses so far for the current question
 
-let totalQuestions = 0;
-let correctAnswers = 0;
+let totalQuestions = 0;   // how many questions asked/finished
+let correctAnswers = 0;   // first-try correct count
 
 let promptAudio = null;   // the "find_*" audio currently playing
 let nextQTimer = null;    // pending setTimeout handle
@@ -117,7 +118,7 @@ function scheduleNextQuestion(delayMs = 800) {
   nextQTimer = setTimeout(nextQuestion, delayMs);
 }
 
-// Reset neutral fill on all non-answered regions; keep answered green
+// Reset neutral fill on all non-answered regions; keep answered color
 function resetAllColors() {
   ids.forEach(id => {
     const el = document.getElementById(id);
@@ -133,14 +134,12 @@ function updateQuizButtonUI() {
   if (quizActive) {
     quizButton.textContent = 'Exit Quiz';
     quizButton.setAttribute('aria-label', 'Exit quiz mode');
-    // red with white text
-    quizButton.style.backgroundColor = '#c53030';
-    quizButton.style.color = '#ffffff';
+    quizButton.style.backgroundColor = '#c53030'; // red
+    quizButton.style.color = '#ffffff';           // white text
     quizButton.style.border = 'none';
   } else {
     quizButton.textContent = 'Start Quiz Mode';
     quizButton.setAttribute('aria-label', 'Start quiz mode');
-    // revert to default styles (let CSS take over)
     quizButton.style.backgroundColor = '';
     quizButton.style.color = '';
     quizButton.style.border = '';
@@ -176,7 +175,7 @@ function startQuizFresh() {
   ids.forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    el.classList.remove('answered', 'correct', 'incorrect', 'asked');
+    el.classList.remove('answered', 'correct', 'incorrect', 'asked', 'failed');
     setRegionFill(el, NEUTRAL_FILL);
   });
 
@@ -201,14 +200,13 @@ function endQuizToHome() {
   ids.forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    el.classList.remove('answered', 'correct', 'incorrect', 'asked');
+    el.classList.remove('answered', 'correct', 'incorrect', 'asked', 'failed');
     clearRegionFill(el); // restore original SVG colors
   });
 
   totalQuestions = 0;
   correctAnswers = 0;
 
-  // Close results modal if it's open
   if (modal) modal.style.display = 'none';
 }
 
@@ -225,7 +223,7 @@ function showQuizResults() {
     resultTitle.textContent = (score === 100) ? 'Great Job!' : 'Quiz Complete!';
   }
   if (scoreText) {
-    scoreText.textContent = `You got ${correctAnswers} out of ${ids.length} correct. (${score}%)`;
+    scoreText.textContent = `You got ${correctAnswers} out of ${ids.length} correct on the first try. (${score}%)`;
   }
   if (modal) modal.style.display = 'block';
 
@@ -273,23 +271,34 @@ ids.forEach(id => {
 
     if (isCorrect) {
       el.classList.add('answered');
-      setRegionFill(el, CORRECT_FILL);
 
-      if (guessCount === 0) correctAnswers++;
+      if (guessCount === 0) {
+        // First try -> GREEN
+        setRegionFill(el, CORRECT_FILL);
+        correctAnswers++;
+      } else {
+        // Correct but after N misses -> RED shade based on N (lighter->darker)
+        const redIndex = Math.min(guessCount, GUESS_COLORS.length) - 1; // 1..5 -> 0..4
+        setRegionFill(el, GUESS_COLORS[Math.max(0, redIndex)]);
+      }
+
       totalQuestions++;
-
       correctSound.play();
       scheduleNextQuestion(800);
+
     } else {
+      // Shade the clicked (wrong) region based on current miss count
       setRegionFill(el, GUESS_COLORS[Math.min(guessCount, GUESS_COLORS.length - 1)]);
       guessCount++;
       wrongSound.play();
 
-      if (guessCount >= 5) {
+      if (guessCount >= MAX_GUESSES) {
+        // Out of tries: reveal target as RED with darkest (or appropriate) shade
         const targetEl = document.getElementById(currentTarget);
         if (targetEl) {
-          targetEl.classList.add('answered');
-          setRegionFill(targetEl, CORRECT_FILL);
+          targetEl.classList.add('answered', 'failed');
+          const redIndex = Math.min(guessCount, GUESS_COLORS.length) - 1; // 5 misses -> darkest
+          setRegionFill(targetEl, GUESS_COLORS[Math.max(0, redIndex)]);
         }
         totalQuestions++;
         scheduleNextQuestion(800);

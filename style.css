@@ -112,3 +112,11 @@ cursor: pointer;
 }
 #reset-quiz:hover { filter: brightness(0.96); }
 #reset-quiz:active { transform: translateY(1px); }
+
+html, body { height: 100%; margin: 0; }
+#app, body { min-height: 100dvh; }            /* dynamic viewport */
+@supports (height: 100svh) {
+  #app, body { min-height: 100svh; }          /* small viewport (iOS safe) */
+}
+/* Optional: avoid page bounce and keep your own scrolling container */
+body { overscroll-behavior: none; }
