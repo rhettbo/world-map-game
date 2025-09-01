@@ -1,0 +1,27 @@
+body {
+  font-family: sans-serif;
+  text-align: center;
+  background: #e0f7fa;
+  margin: 0;
+  padding: 2em;
+}
+
+#map-container {
+  max-width: 1000px;
+  margin: auto;
+}
+
+svg {
+  width: 100%;
+  height: auto;
+}
+
+g {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+g:hover {
+  opacity: 0.85;
+  filter: drop-shadow(0 0 5px #03a9f4);
+}
